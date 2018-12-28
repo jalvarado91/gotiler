@@ -2,17 +2,31 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"log"
 
 	"github.com/disintegration/imaging"
 )
 
+type TilePos struct {
+	center image.Point
+	bounds image.Rectangle
+}
+
 func calculateDims(targetWidth int, targetHeight int, padding int) (width int, height int) {
 	availW := targetWidth - padding*3
 	availH := targetHeight - padding*3
 
 	return availW / 2, availH / 2
+}
+
+func calculateBounds(imgW int, imgH int, pad int) []image.Point {
+	return []image.Point{
+		image.Pt(pad, pad),
+		image.Pt(pad+imgW, pad),
+		image.Pt(pad, pad+imgH+pad),
+		image.Pt(pad+imgW+pad, pad+imgH+pad)}
 }
 
 func main() {

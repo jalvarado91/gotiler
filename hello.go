@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -24,34 +23,42 @@ func calculateDims(targetWidth int, targetHeight int, padding int) (width int, h
 func calculateBounds(imgW int, imgH int, pad int) []image.Point {
 	return []image.Point{
 		image.Pt(pad, pad),
-		image.Pt(pad+imgW, pad),
+		image.Pt(pad+pad+imgW, pad),
 		image.Pt(pad, pad+imgH+pad),
 		image.Pt(pad+imgW+pad, pad+imgH+pad)}
 }
 
-func main() {
-	targetWidth, targetHeight, padding := 1024, 769, 24
+func createBoxball(srcImages []string, outPath string, targetWidth int, targetHeight int, padding int) error {
 	newWidth, newHeight := calculateDims(targetWidth, targetHeight, padding)
 
-	imgSrc := "testdata/branches.png"
+	bounds := calculateBounds(newWidth, newHeight, padding)
+	canvas := imaging.New(targetWidth, targetHeight, color.White)
+
+	var subImg image.Image
+	var err error
+	for idx, imPath := range srcImages {
+		subImg, err = imaging.Open(imPath)
+		subImg = imaging.Fill(subImg, newWidth, newHeight, imaging.Center, imaging.Lanczos)
+		if err != nil {
+			return err
+		}
+		canvas = imaging.Paste(canvas, subImg, bounds[idx])
+	}
+
+	err = imaging.Save(canvas, outPath)
+	return err
+}
+
+func main() {
+	targetWidth, targetHeight, padding := 1024, 768, 16
 	srcImages := []string{
 		"testdata/bold.jpg",
 		"testdata/beautiful.jpg",
 		"testdata/imagination.jpg",
 		"testdata/procrastination.jpg"}
 
-	src, err := imaging.Open(imgSrc)
+	err := createBoxball(srcImages, "testdata/out_tile.jpg", targetWidth, targetHeight, padding)
 	if err != nil {
-		log.Fatalf("failed to open image: %v", err)
+		log.Fatalf("failed to save create boxball layou: %v", err)
 	}
-
-	canvas := imaging.New(targetWidth, targetHeight, color.White)
-
-	size := src.Bounds().Size()
-
-	fmt.Println(canvas.Bounds())
-	fmt.Println(srcImages)
-	fmt.Printf("newWidth %d, newHeight %d\n", newWidth, newHeight)
-	fmt.Printf("width %d\n", size.X)
-	fmt.Printf("height %d\n", size.Y)
 }
